@@ -1,0 +1,21 @@
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# supabase
+supabase/.branches
+supabase/.temp
+
+# node / deno
+node_modules/
+.deno/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# local tooling
+.claude/
