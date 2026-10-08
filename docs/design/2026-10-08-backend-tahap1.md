@@ -89,7 +89,9 @@ Timestamp disimpan UTC. Zona waktu IANA disimpan di `profiles.timezone`.
 
 ### 4.1 Tabel
 
-**profiles** — `id` = `auth.users.id` (tanpa `owner_id` terpisah), `display_name`, `timezone text not null default 'Asia/Jakarta'`, `locale text default 'id'`, `data_version bigint not null default 0`. Baris dibuat oleh trigger saat user baru terdaftar.
+**profiles** — `id` = `auth.users.id` (tanpa `owner_id` terpisah), `display_name`, `timezone text not null default 'Asia/Jakarta'`, `locale text default 'id'`. Baris dibuat oleh trigger saat user baru terdaftar.
+
+**owner_state** — `owner_id` primary key, `data_version bigint not null default 0`. Dipisah dari `profiles` agar kenaikan `data_version` tidak mengubah `revision` profil. Hanya SELECT untuk `authenticated`; diubah oleh trigger.
 
 **preferences** — `owner_id` unique.
 - `study_windows jsonb` — daftar `{ "dow": 1-7, "start": "HH:MM", "end": "HH:MM" }` (1 = Senin) dalam zona waktu pengguna. Default kosong: tanpa jendela belajar, mesin tidak menjadwalkan apa pun dan meminta pengguna mengisinya.
@@ -123,13 +125,13 @@ Timestamp disimpan UTC. Zona waktu IANA disimpan di `profiles.timezone`.
 ### 4.2 Trigger umum
 
 - **Revision (optimistic concurrency).** `BEFORE UPDATE` pada semua tabel ber-`revision`: jika `NEW.revision <> OLD.revision` maka gagal dengan pesan `REVISION_CONFLICT`; jika sama, `NEW.revision = OLD.revision + 1` dan `NEW.updated_at = now()`. Aplikasi wajib selalu mengirim `revision` terakhir yang ia ketahui.
-- **data_version.** `AFTER INSERT/UPDATE/DELETE` pada `tasks`, `steps`, `step_dependencies`, `activities`, `preferences` menaikkan `profiles.data_version` milik owner. Nilai ini dipakai untuk mendeteksi usulan rencana yang basi.
+- **data_version.** `AFTER INSERT/UPDATE/DELETE` pada `tasks`, `steps`, `step_dependencies`, `activities`, `preferences` menaikkan `owner_state.data_version` milik owner. Nilai ini dipakai untuk mendeteksi usulan rencana yang basi.
 
 ### 4.3 RLS dan grant
 
 - RLS aktif di semua tabel. Policy `owner_id = auth.uid()` dengan `USING` dan `WITH CHECK` (untuk `profiles`: `id = auth.uid()`).
 - `profiles`, `preferences`, `tasks`, `steps`, `step_dependencies`, `activities`: SELECT/INSERT/UPDATE untuk `authenticated`. DELETE fisik tidak diberikan; penghapusan memakai `deleted_at`.
-- `sources`, `proposals`, `plans`, `sessions`, `operations`: hanya SELECT untuk `authenticated`. Penulisan lewat Edge Function (service role, owner dari JWT) atau RPC `security definer`.
+- `owner_state`, `sources`, `proposals`, `plans`, `sessions`, `operations`: hanya SELECT untuk `authenticated`. Penulisan lewat Edge Function (service role, owner dari JWT) atau RPC `security definer`.
 - Semua fungsi `security definer` memakai `set search_path = ''`, memeriksa `auth.uid()` sendiri, dan hanya di-`grant execute` ke `authenticated`.
 - Storage bucket `inputs` privat. Policy: pengguna hanya dapat INSERT/SELECT/DELETE objek dengan prefix `{auth.uid()}/`. Batas ukuran objek 10 MB; MIME diizinkan `image/jpeg`, `image/png`, `application/pdf`.
 
@@ -145,7 +147,7 @@ Timestamp disimpan UTC. Zona waktu IANA disimpan di `profiles.timezone`.
 **`confirm_plan(p_plan_id uuid, p_operation_id uuid) returns jsonb`**
 1. Idempotensi lewat `operations`.
 2. Plan harus milik `auth.uid()` dan berstatus `proposed`.
-3. `base_plan_version` harus sama dengan versi rencana aktif saat ini, dan `base_data_version` sama dengan `profiles.data_version`. Jika tidak: `STALE_PLAN` (aplikasi meminta usulan ulang).
+3. `base_plan_version` harus sama dengan versi rencana aktif saat ini, dan `base_data_version` sama dengan `owner_state.data_version`. Jika tidak: `STALE_PLAN` (aplikasi meminta usulan ulang).
 4. Dalam satu transaksi: rencana aktif lama menjadi `superseded` dan sesinya `is_active = false` (kecuali sesi `completed`/`in_progress` yang dipertahankan); rencana baru menjadi `active` dan sesinya `is_active = true`. Constraint exclusion menjadi pemeriksaan akhir terhadap tabrakan.
 5. Kembalikan `{ plan_id, version }`.
 
