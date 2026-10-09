@@ -12,11 +12,13 @@ export function supabasePlanRepo(db: SupabaseClient): PlanRepo {
       const from = new Date(now - DAY_MS).toISOString();
       const to = new Date(now + (HORIZON_DAYS + 1) * DAY_MS).toISOString();
 
-      const [profile, prefs, state, tasks, activities, plans] = await Promise.all([
+      // Read the version before the data: a write landing in between then makes the plan stale
+      // instead of stamping old data with a newer version.
+      const state = await db.from("owner_state").select("data_version").eq("owner_id", userId).single();
+      const [profile, prefs, tasks, activities, plans] = await Promise.all([
         db.from("profiles").select("timezone").eq("id", userId).single(),
         db.from("preferences").select("study_windows, max_daily_minutes, session_minutes, break_minutes")
           .eq("owner_id", userId).single(),
-        db.from("owner_state").select("data_version").eq("owner_id", userId).single(),
         db.from("tasks").select("id, title, official_deadline, personal_target, priority, created_at, deleted_at")
           .eq("owner_id", userId).is("deleted_at", null).neq("work_status", "done"),
         db.from("activities").select("id, start_at, end_at, busy, locked, deleted_at")

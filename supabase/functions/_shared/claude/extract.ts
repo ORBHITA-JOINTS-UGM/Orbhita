@@ -31,7 +31,8 @@ const MAX_TOKENS = 16000;
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 
 export function anthropicMessagesApi(apiKey: string): MessagesApi {
-  const client = new Anthropic({ apiKey, maxRetries: 2 });
+  // Stay well inside the Edge Function wall-clock limit, including one repair round.
+  const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 60_000 });
   return { create: (params) => client.beta.messages.create(params as any) };
 }
 

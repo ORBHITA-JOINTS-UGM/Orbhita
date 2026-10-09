@@ -40,7 +40,9 @@ class FakeRepo implements ExtractRepo {
   countSourcesSince(_u: string, _since: number) {
     return Promise.resolve(this.recentCount);
   }
-  hasProcessing(_u: string) {
+  processingSince: number | null = null;
+  hasProcessing(_u: string, since: number) {
+    this.processingSince = since;
     return Promise.resolve(this.processing);
   }
   getTimezone(_u: string) {
@@ -161,6 +163,12 @@ Deno.test("sudah ada source processing ditolak RATE_LIMITED", async () => {
   repo.processing = true;
   const res = await handler(post(textBody));
   assertEquals(res.status, 429);
+});
+
+Deno.test("source processing yang lebih tua dari 5 menit tidak menghalangi", async () => {
+  const { handler, repo } = setup();
+  await handler(post(textBody));
+  assertEquals(repo.processingSince, NOW - 5 * 60 * 1000);
 });
 
 Deno.test("media dihapus dari storage saat Claude gagal", async () => {

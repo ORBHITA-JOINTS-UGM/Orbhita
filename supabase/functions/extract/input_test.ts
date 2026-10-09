@@ -78,6 +78,13 @@ Deno.test("path milik pengguna lain ditolak FORBIDDEN", () => {
   assertEquals(code(() => parseExtractRequest(traversal, UID)), "403:FORBIDDEN");
 });
 
+Deno.test("path ter-encode atau bersubfolder ditolak FORBIDDEN", () => {
+  for (const p of [`${UID}/%2e%2e/${OTHER}/f.pdf`, `${UID}/sub/a.jpg`, `${UID}/a.exe`, `${UID}/`]) {
+    const b = body({ input_type: "image", text: null, storage_paths: [p] });
+    assertEquals(code(() => parseExtractRequest(b, UID)), "403:FORBIDDEN", p);
+  }
+});
+
 Deno.test("image tanpa path atau lebih dari 5 file ditolak", () => {
   assertEquals(code(() => parseExtractRequest(body({ input_type: "image", storage_paths: [] }), UID)), "400:INVALID_INPUT");
   const six = Array.from({ length: 6 }, (_, i) => `${UID}/${i}.jpg`);

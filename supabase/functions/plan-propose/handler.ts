@@ -87,8 +87,11 @@ export function createPlanProposeHandler(deps: {
       if (row.status !== "planned" && row.status !== "in_progress") {
         throw new ApiError(400, "INVALID_INPUT", "Sesi ini tidak bisa ditunda.");
       }
-      // The postponed session is being moved, so it no longer occupies its old slot.
-      input.fixedSessions = fixedFromSessions(data.activeSessions.filter((s) => s.id !== row.id));
+      // A planned session frees its old slot. An in-progress one stays active after confirm_plan,
+      // so its slot must stay taken or the new plan could never be confirmed.
+      if (row.status === "planned") {
+        input.fixedSessions = fixedFromSessions(data.activeSessions.filter((s) => s.id !== row.id));
+      }
       const session = { taskId: row.task_id, stepId: row.step_id, start: Date.parse(row.start_at), end: Date.parse(row.end_at) };
       if (postpone.mode === "manual") {
         const check = checkManualSlot(input, session, postpone.startAt!);

@@ -218,3 +218,27 @@ begin
   perform tests.assert((select remaining_minutes from public.steps where id = s) = 60, 'progres langkah tidak berubah otomatis');
   perform tests.as_admin();
 end $$;
+
+-- memulai sesi membuat usulan rencana yang tertunda basi
+do $$
+declare
+  a uuid := tests.create_user('stale-sess@test.local');
+  t uuid;
+  s uuid;
+  pl uuid;
+  ses uuid;
+  p uuid;
+  dv bigint;
+begin
+  insert into public.tasks (owner_id, title) values (a, 'T') returning id into t;
+  insert into public.steps (owner_id, task_id, title, estimate_minutes, remaining_minutes) values (a, t, 'S', 60, 60) returning id into s;
+  insert into public.plans (owner_id, version, status, base_data_version) values (a, 1, 'active', 0) returning id into pl;
+  insert into public.sessions (owner_id, plan_id, task_id, step_id, start_at, end_at, is_active)
+  values (a, pl, t, s, now(), now() + interval '30 minutes', true) returning id into ses;
+  select data_version into dv from public.owner_state where owner_id = a;
+  p := public.save_plan_proposal(a, jsonb_build_object('version', 2, 'base_plan_version', 1, 'base_data_version', dv), '[]');
+  perform tests.as_user(a);
+  perform public.set_session_status(ses, 'in_progress', 1);
+  perform tests.expect_error(format('select public.confirm_plan(%L, gen_random_uuid())', p), 'STALE_PLAN');
+  perform tests.as_admin();
+end $$;

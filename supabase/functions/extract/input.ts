@@ -19,6 +19,7 @@ const MAX_TEXT = 10_000;
 const MAX_IMAGES = 5;
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_PDF_PAGES = 20;
+const FILE_NAME_RE = /^[A-Za-z0-9_-]{1,100}\.(jpe?g|png|pdf)$/i;
 
 const invalid = (field: string, message: string) =>
   new ApiError(400, "INVALID_INPUT", message, { fieldErrors: { [field]: message } });
@@ -50,8 +51,9 @@ export function parseExtractRequest(body: unknown, userId: string): ExtractReque
     throw invalid("storage_paths", `Kirim 1 sampai ${MAX_IMAGES} gambar.`);
   }
   if (inputType === "pdf" && storagePaths.length !== 1) throw invalid("storage_paths", "Kirim tepat satu PDF.");
+  // Strict allow-list: the storage client does not encode paths, so "%2e%2e" would traverse.
   for (const p of storagePaths) {
-    if (!p.startsWith(`${userId}/`) || p.includes("..") || p.includes("\\")) {
+    if (!p.startsWith(`${userId}/`) || !FILE_NAME_RE.test(p.slice(userId.length + 1))) {
       throw new ApiError(403, "FORBIDDEN", "File bukan milik pengguna ini.");
     }
   }

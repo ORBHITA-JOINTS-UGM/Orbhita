@@ -22,9 +22,9 @@ export function supabaseExtractRepo(db: SupabaseClient): ExtractRepo {
       return res.count ?? 0;
     },
 
-    async hasProcessing(userId) {
+    async hasProcessing(userId, since) {
       const res = await db.from("sources").select("id", { count: "exact", head: true })
-        .eq("owner_id", userId).eq("status", "processing");
+        .eq("owner_id", userId).eq("status", "processing").gte("created_at", new Date(since).toISOString());
       check(res);
       return (res.count ?? 0) > 0;
     },

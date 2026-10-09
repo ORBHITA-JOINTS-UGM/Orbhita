@@ -7,7 +7,8 @@ import { checkMedia, parseExtractRequest } from "./input.ts";
 export interface ExtractRepo {
   findOperation(userId: string, operationId: string): Promise<{ requestHash: string; response: unknown } | null>;
   countSourcesSince(userId: string, since: number): Promise<number>;
-  hasProcessing(userId: string): Promise<boolean>;
+  /** True if a source started after `since` is still processing; older ones count as abandoned. */
+  hasProcessing(userId: string, since: number): Promise<boolean>;
   getTimezone(userId: string): Promise<string>;
   insertSource(userId: string, s: { inputType: string; text: string | null; storagePaths: string[] }): Promise<string>;
   finishSource(sourceId: string, status: "completed" | "failed", errorCode: string | null): Promise<void>;
@@ -33,6 +34,7 @@ export interface ExtractDeps {
 
 const RATE_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT = 10;
+const STALE_PROCESSING_MS = 5 * 60 * 1000;
 
 export function createExtractHandler(deps: ExtractDeps): (req: Request) => Promise<Response> {
   const { repo } = deps;
@@ -64,7 +66,8 @@ export function createExtractHandler(deps: ExtractDeps): (req: Request) => Promi
         retryAfter: RATE_WINDOW_MS / 1000,
       });
     }
-    if (await repo.hasProcessing(userId)) {
+    // A worker killed by the runtime time limit never reaches `finally`; don't lock the user out.
+    if (await repo.hasProcessing(userId, deps.now() - STALE_PROCESSING_MS)) {
       throw new ApiError(429, "RATE_LIMITED", "Masih ada input yang sedang diproses.", {
         retryable: true,
         retryAfter: 30,

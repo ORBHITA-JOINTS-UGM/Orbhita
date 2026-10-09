@@ -115,6 +115,21 @@ Deno.test("postpone auto memblokir slot lama", async () => {
   assertEquals(overlapsOld, false);
 });
 
+Deno.test("postpone sesi in_progress tidak membuka slot lamanya", async () => {
+  const data = rows({ activeSessions: [activeSession("2026-10-08T19:00", "2026-10-08T20:00", "in_progress")] });
+  const auto = setup(data);
+  assertEquals((await auto.handler(post({ trigger: "postpone", postpone: { session_id: SESSION_ID, mode: "auto" } }))).status, 200);
+  const overlapsOld = auto.saved[0].sessions.some((s) => s.start < J("2026-10-08T20:00") && s.end > J("2026-10-08T19:00"));
+  assertEquals(overlapsOld, false);
+
+  const manual = setup(data);
+  const res = await manual.handler(post({
+    trigger: "postpone",
+    postpone: { session_id: SESSION_ID, mode: "manual", start_at: iso("2026-10-08T19:30") },
+  }));
+  assertEquals(res.status, 422);
+});
+
 Deno.test("postpone sesi yang tidak ada ditolak NOT_FOUND", async () => {
   const { handler } = setup();
   const res = await handler(post({ trigger: "postpone", postpone: { session_id: SESSION_ID, mode: "auto" } }));
