@@ -104,3 +104,18 @@ Skrip login sebagai user uji, mengisi jam belajar, mengirim [contoh tugas](scrip
 - Penjelasan risiko berupa teks templat dari hasil mesin jadwal.
 
 Dokumen desain: [docs/design/2026-10-08-backend-tahap1.md](docs/design/2026-10-08-backend-tahap1.md).
+
+## Endpoint health
+
+Endpoint publik `GET /functions/v1/health` sudah diuji melalui curl
+dan menghasilkan HTTP 200 dengan status "ok".
+Endpoint ini tidak membaca data pengguna.
+
+## Penggunaan AI
+
+- ChatGPT membantu pembahasan arsitektur, setup Supabase, penulisan
+  fungsi health, dan penelusuran error. Fungsi health diperiksa
+  dan diuji oleh anggota tim melalui curl.
+- Claude Code digunakan untuk membantu pengembangan backend tahap 1.
+- Claude API digunakan dalam fitur ekstraksi instruksi tugas menjadi draf.
+- Catatan ini diperbarui sesuai penggunaan AI dan pengujian yang dilakukan.

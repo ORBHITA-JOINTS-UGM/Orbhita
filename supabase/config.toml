@@ -419,3 +419,9 @@ verify_jwt = true
 
 [functions.plan-propose]
 verify_jwt = true
+
+[functions.health]
+enabled = true
+verify_jwt = false
+import_map = "./functions/health/deno.json"
+entrypoint = "./functions/health/index.ts"
