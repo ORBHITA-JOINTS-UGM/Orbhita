@@ -70,7 +70,28 @@ Gambar/PDF diunggah dulu ke bucket privat `inputs` di path `{user_id}/{nama-file
 
 Format error: `{error: {code, message, field_errors, retryable}, request_id}`.
 
-## Setup Google Login (dikerjakan pemilik akun)
+## Google Login
+
+Status: aktif dan sudah diuji (login pertama berhasil, profil/preferensi terbuat otomatis). Scope hanya `email` dan `profile`; tidak ada akses Calendar.
+
+Aplikasi memakai login lewat browser dengan satu OAuth client **Web application** (`Orbhita Supabase`), sehingga berjalan di Android dan iOS tanpa client per platform:
+
+```dart
+await supabase.auth.signInWithOAuth(
+  OAuthProvider.google,
+  redirectTo: 'com.orbhita.app://login-callback',
+);
+```
+
+Saat membangun aplikasi:
+
+- Tambahkan `com.orbhita.app://login-callback` di Supabase → Authentication → URL Configuration → Redirect URLs (sesuaikan bila package name berbeda).
+- Daftarkan scheme deep link itu di `AndroidManifest.xml` dan `Info.plist`.
+- Consent screen masih berstatus Testing: hanya email yang terdaftar sebagai Test users yang bisa login (maks. 100).
+
+Login native tanpa browser (paket `google_sign_in`) bisa ditambahkan nanti dengan membuat client Android (package name + SHA-1) dan iOS (bundle ID), lalu menambahkan client ID-nya ke kolom Client IDs di Supabase. Backend tidak perlu diubah.
+
+### Setup awal (sudah dikerjakan)
 
 1. Google Cloud Console → buat project → **OAuth consent screen**: tipe External, isi nama aplikasi, tambahkan email anggota tim sebagai *test users*.
 2. **Credentials → Create credentials → OAuth client ID**:
