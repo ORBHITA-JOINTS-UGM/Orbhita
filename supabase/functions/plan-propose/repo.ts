@@ -41,12 +41,12 @@ export function supabasePlanRepo(db: SupabaseClient): PlanRepo {
 
       const planRows = check(plans) as { id: string; version: number; status: string }[];
       const activePlan = planRows.find((p) => p.status === "active");
-      const activeSessions = activePlan
-        ? check(
-          await db.from("sessions").select("id, task_id, step_id, start_at, end_at, status")
-            .eq("owner_id", userId).eq("plan_id", activePlan.id).eq("is_active", true),
-        ) as PlanRows["activeSessions"]
-        : [];
+      // In-progress/completed sessions stay active after their plan is superseded,
+      // so select by is_active rather than by the active plan id.
+      const activeSessions = check(
+        await db.from("sessions").select("id, task_id, step_id, start_at, end_at, status")
+          .eq("owner_id", userId).eq("is_active", true),
+      ) as PlanRows["activeSessions"];
 
       return {
         profile: check(profile) as PlanRows["profile"],
