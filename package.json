@@ -1,0 +1,20 @@
+{
+  "name": "orbhita",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ORBHITA backend: Supabase migrations, edge functions, and tests",
+  "type": "module",
+  "scripts": {
+    "test:deno": "deno test --config supabase/functions/deno.json --allow-env --allow-read supabase/functions",
+    "test:sql": "node supabase/tests/run.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ORBHITA-JOINTS-UGM/Orbhita.git"
+  },
+  "devDependencies": {
+    "dotenv": "18.0.6",
+    "postgres": "3.4.9",
+    "supabase": "2.120.0"
+  }
+}
