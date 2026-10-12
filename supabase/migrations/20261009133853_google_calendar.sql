@@ -97,7 +97,7 @@ begin
     start_at, end_at, busy, locked, deleted_at
   )
   select p_owner_id, 'google', e.external_key, e.title,
-         e.start_at, e.end_at, e.busy, true, null
+         e.start_at, e.end_at, e.busy, e.busy, null
   from jsonb_to_recordset(p_events) as e(
     external_key text, title text,
     start_at timestamptz, end_at timestamptz, busy boolean
@@ -109,12 +109,12 @@ begin
     start_at = excluded.start_at,
     end_at = excluded.end_at,
     busy = excluded.busy,
-    locked = true,
+    locked = excluded.locked,
     deleted_at = null
   where (a.title, a.start_at, a.end_at, a.busy, a.locked, a.deleted_at)
     is distinct from
     (excluded.title, excluded.start_at, excluded.end_at,
-     excluded.busy, true, null::timestamptz);
+     excluded.busy, excluded.locked, null::timestamptz);
 
   get diagnostics v_written = row_count;
 
