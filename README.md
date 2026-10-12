@@ -114,8 +114,12 @@ Endpoint ini tidak membaca data pengguna.
 ## Penggunaan AI
 
 - ChatGPT membantu pembahasan arsitektur, setup Supabase, penulisan
-  fungsi health, dan penelusuran error. Fungsi health diperiksa
-  dan diuji oleh anggota tim melalui curl.
+  fungsi health, serta penyusunan kode OAuth Google Calendar, enkripsi
+  token, sinkronisasi acara, migration SQL, dan pengujiannya.
+  Anggota tim menjalankan pemeriksaan tipe, tes Deno, dan tes SQL lokal
+  serta menindaklanjuti error. Hasil pengujian: 123 tes Deno dan
+  4 berkas tes SQL lolos. Integrasi Calendar dengan akun Google
+  belum diuji langsung.
 - Claude Code digunakan untuk membantu pengembangan backend tahap 1.
 - Claude API digunakan dalam fitur ekstraksi instruksi tugas menjadi draf.
 - Catatan ini diperbarui sesuai penggunaan AI dan pengujian yang dilakukan.
