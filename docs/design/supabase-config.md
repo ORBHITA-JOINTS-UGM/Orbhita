@@ -104,3 +104,27 @@ Login native tanpa browser (paket `google_sign_in`) bisa ditambahkan nanti denga
 ## Akses tim
 
 Supabase Dashboard → pilih organization → **Team** → **Invite** → masukkan email anggota, role **Developer** (bisa deploy, tidak bisa mengubah billing).
+
+## Integrasi Google Calendar
+
+Login Google dan koneksi Calendar merupakan dua alur berbeda.
+Pengguna yang sudah login memanggil `google-calendar-connect`,
+lalu membuka `data.authorization_url` di browser untuk memberi izin.
+`google-calendar-callback` menerima hasil OAuth.
+Setelah berhasil, panggil `google-calendar-sync` untuk mengimpor acara.
+
+Connect dan sync memakai POST dengan header
+`Authorization: Bearer <access token Supabase pengguna>`.
+Callback memakai GET dan memvalidasi state OAuth sekali pakai.
+
+Secret backend:
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+`GOOGLE_CALENDAR_REDIRECT_URI`, dan `GOOGLE_CALENDAR_ENCRYPTION_KEY`.
+Nilai secret tidak boleh dimasukkan ke aplikasi Flutter atau repo.
+
+Respons sync dibungkus dalam `data` dan memuat `calendar_id`,
+`range_start`, `range_end`, `received`, `written`, dan `removed`.
+Versi awal membaca kalender utama, dengan satu koneksi Google per pengguna.
+
+OAuth dan impor kalender kampus sudah diuji langsung pada 13 Oktober 2026.
+Integrasi alur tersebut di Flutter belum diuji.
