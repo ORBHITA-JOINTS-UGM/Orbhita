@@ -127,14 +127,12 @@ Deno.serve(withErrors(async (req) => {
   if (saveError) throw new Error("calendar connection save failed");
 
   return new Response(
-    "<!doctype html><html lang='id'><meta charset='utf-8'>" +
-    "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
-    "<title>Calendar terhubung</title>" +
-    "<h1>Google Calendar berhasil terhubung</h1>" +
-    "<p>Kembali ke Orbhita untuk menyinkronkan jadwal.</p></html>",
+    "Google Calendar berhasil terhubung.\n\n" +
+    "Kamu bisa menutup tab ini dan kembali ke Orbhita " +
+    "untuk menyinkronkan jadwal.",
     {
       headers: {
-        "Content-Type": "text/html; charset=utf-8",
+        "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-store",
         "Referrer-Policy": "no-referrer",
         "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",

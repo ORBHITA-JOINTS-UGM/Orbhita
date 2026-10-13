@@ -99,7 +99,7 @@ Skrip login sebagai user uji, mengisi jam belajar, mengirim [contoh tugas](scrip
 
 ## Batasan tahap 1
 
-- Belum ada integrasi Google Calendar, reminder WhatsApp, sinkronisasi offline, dan hapus akun; semuanya direncanakan di tahap berikutnya.
+- Reminder WhatsApp, sinkronisasi offline, dan hapus akun belum tersedia.
 - Transkripsi suara dilakukan di perangkat; backend menerima teksnya.
 - Penjelasan risiko berupa teks templat dari hasil mesin jadwal.
 
@@ -118,8 +118,25 @@ Endpoint ini tidak membaca data pengguna.
   token, sinkronisasi acara, migration SQL, dan pengujiannya.
   Anggota tim menjalankan pemeriksaan tipe, tes Deno, dan tes SQL lokal
   serta menindaklanjuti error. Hasil pengujian: 123 tes Deno dan
-  4 berkas tes SQL lolos. Integrasi Calendar dengan akun Google
-  belum diuji langsung.
+  4 berkas tes SQL lolos. Integrasi Calendar diuji langsung pada 13 Oktober 2026:
+  OAuth berhasil, 151 acara diimpor, dan sync ulang menghasilkan
+  written = 0 serta removed = 0.
 - Claude Code digunakan untuk membantu pengembangan backend tahap 1.
 - Claude API digunakan dalam fitur ekstraksi instruksi tugas menjadi draf.
 - Catatan ini diperbarui sesuai penggunaan AI dan pengujian yang dilakukan.
+
+## Google Calendar
+
+Backend koneksi dan sinkronisasi Calendar sudah di-deploy dan diuji.
+Integrasi tombol serta alur di aplikasi Flutter masih perlu dikerjakan.
+
+- Meminta izin baca acara Calendar; tidak menulis ke Google Calendar.
+- Satu koneksi Google per pengguna Orbhita.
+- Mengimpor kalender utama (`primary`), dari 7 hari lalu hingga 90 hari ke depan.
+- Acara berulang diimpor sebagai tiap kejadian; acara seharian mengikuti zona kalender.
+- Refresh token disimpan terenkripsi dan hanya dapat diakses backend.
+- Snapshot diterapkan secara atomik; acara identik tidak ditulis ulang.
+
+Hasil uji langsung pada 13 Oktober 2026:
+impor pertama kalender kampus menerima dan menulis 151 acara.
+Sync ulang menerima 151 acara, dengan `written: 0` dan `removed: 0`.
