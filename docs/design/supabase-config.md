@@ -128,3 +128,30 @@ Versi awal membaca kalender utama, dengan satu koneksi Google per pengguna.
 
 OAuth dan impor kalender kampus sudah diuji langsung pada 13 Oktober 2026.
 Integrasi alur tersebut di Flutter belum diuji.
+
+## Hapus akun
+
+Endpoint: POST /functions/v1/delete-account
+
+Header:
+    Authorization: Bearer <access_token Supabase pengguna>
+    Content-Type: application/json
+
+Body:
+    {"confirmation": "DELETE_MY_ACCOUNT"}
+
+ID akun diambil dari sesi pengguna. Jangan mengirim owner_id.
+
+Respons berhasil:
+    {"data": {"deleted": true}}
+
+Setelah berhasil, aplikasi membersihkan sesi lokal dan membuka halaman login.
+
+DELETION_INCOMPLETE berarti proses belum selesai. Pengguna dapat mengulang
+permintaan dengan konfirmasi yang sama. Akses data tetap terkunci.
+
+Jika respons terputus setelah akun terhapus, percobaan berikutnya dapat
+menghasilkan UNAUTHENTICATED. HTTP 401 saja bukan bukti penghapusan berhasil.
+
+Pengujian endpoint dengan akun khusus dan file Storage asli masih perlu
+dilakukan setelah deploy.

@@ -99,7 +99,7 @@ Skrip login sebagai user uji, mengisi jam belajar, mengirim [contoh tugas](scrip
 
 ## Batasan tahap 1
 
-- Reminder WhatsApp, sinkronisasi offline, dan hapus akun belum tersedia.
+- Reminder WhatsApp dan sinkronisasi offline belum tersedia.
 - Transkripsi suara dilakukan di perangkat; backend menerima teksnya.
 - Penjelasan risiko berupa teks templat dari hasil mesin jadwal.
 
@@ -140,3 +140,19 @@ Integrasi tombol serta alur di aplikasi Flutter masih perlu dikerjakan.
 Hasil uji langsung pada 13 Oktober 2026:
 impor pertama kalender kampus menerima dan menulis 151 acara.
 Sync ulang menerima 151 acara, dengan `written: 0` dan `removed: 0`.
+
+## Hapus akun
+
+Backend menyediakan endpoint untuk menghapus akun pengguna.
+Pengguna harus login dan memberikan konfirmasi penghapusan.
+
+Backend mengunci akses data akun, mencabut akses Google Calendar,
+membersihkan file di bucket inputs, lalu menghapus akun beserta datanya.
+Jika proses belum selesai, permintaan dapat diulang untuk melanjutkan.
+Akun tetap terkunci selama penghapusan berlangsung.
+
+Handler, pembersihan Storage dengan tiruan, dan cascade database lokal
+sudah diuji. Pengujian endpoint dengan akun dan file asli belum dilakukan.
+
+ChatGPT membantu penyusunan kode dan tes fitur hapus akun.
+Anggota tim menjalankan pemeriksaan tipe, tes Deno, dan tes SQL lokal.
